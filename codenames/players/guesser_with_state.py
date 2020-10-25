@@ -1,6 +1,8 @@
 import scipy.spatial.distance
+
 from players.guesser import Guesser
 
+# TODO(Aditi): Incorporate state / probability distributions across turns.
 class AIGuesserWithState(Guesser):
 
     def __init__(self, word_vectors=None):
