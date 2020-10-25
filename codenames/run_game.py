@@ -61,31 +61,40 @@ class GameRun:
         if sys.argv[1] != "human" or sys.argv[2] != "human":
             if args.wordnet is not None:
                 brown_ic = Game.load_wordnet(args.wordnet)
-                self.g_kwargs["brown_ic"] = brown_ic
-                self.cm_kwargs["brown_ic"] = brown_ic
+                if sys.argv[1] != "human":
+                    self.cm_kwargs["brown_ic"] = brown_ic
+                if sys.argv[2] != "human":
+                    self.g_kwargs["brown_ic"] = brown_ic
                 print('loaded wordnet')
 
             if args.glove is not None:
                 glove_vectors = Game.load_glove_vecs(args.glove)
-                self.g_kwargs["glove_vecs"] = glove_vectors
-                self.cm_kwargs["glove_vecs"] = glove_vectors
+                if sys.argv[1] != "human":
+                    self.cm_kwargs["glove_vecs"] = glove_vectors
+                if sys.argv[2] != "human":
+                    self.g_kwargs["glove_vecs"] = glove_vectors
                 print('loaded glove vectors')
 
             if args.w2v is not None:
                 w2v_vectors = Game.load_w2v(args.w2v)
-                self.g_kwargs["word_vectors"] = w2v_vectors
-                self.cm_kwargs["word_vectors"] = w2v_vectors
+                if sys.argv[1] != "human":
+                    self.cm_kwargs["word_vectors"] = w2v_vectors
+                if sys.argv[2] != "human":
+                    self.g_kwargs["word_vectors"] = w2v_vectors
                 print('loaded word vectors')
 
             if args.glove_cm is not None:
+                assert(sys.argv[1] != "human")
                 glove_vectors = Game.load_glove_vecs(args.glove_cm)
                 self.cm_kwargs["glove_vecs"] = glove_vectors
                 print('loaded glove vectors')
 
             if args.glove_guesser is not None:
+                assert(sys.argv[2] != "human")
                 glove_vectors = Game.load_glove_vecs(args.glove_guesser)
                 self.g_kwargs["glove_vecs"] = glove_vectors
                 print('loaded glove vectors')
+
 
         # set seed so that board/keygrid can be reloaded later
         if args.seed == 'time':
