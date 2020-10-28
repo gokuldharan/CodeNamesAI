@@ -10,6 +10,7 @@ import colorama
 import gensim.models.keyedvectors as word2vec
 import numpy as np
 from nltk.corpus import wordnet_ic
+from scipy.sparse import csr_matrix
 
 class GameCondition(enum.Enum):
     """Enumeration that represents the different states of the game"""
@@ -26,7 +27,7 @@ class Game:
     """
 
     def __init__(self, codemaster, guesser,
-                 seed="time", do_print=True, do_log=True, game_name="default",
+                 seed="time", do_print=True, do_log=True, train = False, game_name="default",
                  cm_kwargs={}, g_kwargs={}):
         """ Setup Game details
 
@@ -51,6 +52,10 @@ class Game:
             g_kwargs (dict, optional): 
                 kwargs passed to Guesser.
         """
+        self.train = train
+        self.alpha = 0.1
+        self.gamma = 0.95
+        self.clue_bank = None
 
         self.game_start_time = time.time()
         colorama.init()
@@ -264,10 +269,48 @@ class Game:
         if os.path.exists("results") and os.path.isdir("results"):
             shutil.rmtree("results")
 
-    def run(self):
+    """ ----------------- Q learning functions ---------------"""
+    def learnQ():
+        num_iterations = 100
+        Q = csr_matrix((500, 200), dtype = np.int8)
+        for i in num_iterations:
+            run(Q)
+        return Q
+
+    def updateQ(Q, old_state, action, new_state, reward):
+        new_Q = max(Q.getrow(new_state))
+        old_Q = Q[old_state][action]
+        Q[old_state][action] = old_Q + self.alpha*(reward + self.gamma*new_Q - old_Q)
+
+    def getState(clue):
+        return self.clue_bank.index(clue)
+
+    def getReward(game_condition):
+        if game_condition == GameCondition.HIT_RED :
+            return 1
+        elif game_condition == GameCondition.HIT_BLUE:
+            return -1
+        elif game_condition == GameCondition.HIT_ASSASSIN:
+            return -100
+        elif game_condition == GameCondition.LOSS:
+            return -1
+        elif game_condition == GameCondition.WIN:
+            return 1
+        elif game_condition == GameCondition.CONTINUE:
+            return 0
+
+
+    """ -------------------------------------------------------"""
+    def run(self, Q = None):
         """Function that runs the codenames game between codemaster and guesser"""
         game_condition = GameCondition.HIT_RED
         game_counter = 0
+
+        old_state = ""
+        new_state = ""
+        action = 0
+        reward = 0
+
         while game_condition != GameCondition.LOSS and game_condition != GameCondition.WIN:
             # board setup and display
             print('\n' * 2)
@@ -284,6 +327,11 @@ class Game:
             guess_num = 0
             clue_num = int(clue_num)
 
+            if Q != None:
+                new_state = getState(clue)
+                if old_state != "":
+                    updateQ(old_state, action, new_state, reward)
+
             print('\n' * 2)
             self.guesser.set_clue(clue, clue_num)
 
@@ -297,6 +345,12 @@ class Game:
                     break
                 guess_answer_index = words_in_play.index(guess_answer.upper().strip())
                 game_condition = self._accept_guess(guess_answer_index)
+
+                # Q learning with simplification of state space
+                if Q != None:
+                    action = guess_answer
+                    reward = getReward(game_condition)
+                    old_state = new_state
 
                 if game_condition == GameCondition.HIT_RED:
                     print('\n' * 2)
