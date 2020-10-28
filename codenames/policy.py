@@ -16,12 +16,12 @@ class epsilonGreedyExploration:
             np.random.seed(seed)
 
     def evaluate(self, Q, state, action_mask):
-        num_actions = Q.shape[1]
         if np.random.rand() < self.epsilon:
             self.epsilon *= self.alpha
             # I assume actions are indexed 0...n-1
             masked_actions = np.where(np.array(action_mask))[0]
             return np.random.choice(masked_actions)
+
         masked_action_values = np.ma.masked_array(Q[state],1-action_mask)
         return np.argmax(masked_action_values)
 
@@ -40,8 +40,6 @@ class softmaxExploration:
         weights = np.exp(Q[state] / self.tau)[masked_actions]
         weights /= np.sum(weights)
         self.tau *= self.alpha
-
-        num_actions = Q.shape[1]
 
         return np.random.choice(masked_actions,p=weights)
 
