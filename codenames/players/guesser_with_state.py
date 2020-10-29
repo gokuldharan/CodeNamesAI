@@ -23,7 +23,9 @@ class AIGuesserWithState(Guesser):
                 self.state[word] = (7, 18)  # alpha, beta
             self.is_first_turn = False
         else:
-            # TODO(Aditi): Update the existing probability distributions given the answer to our guess.
+            del self.state[self.guess]
+            del self.updated_state[self.guess]
+            
             guess_true_value = self.words[self.guess_index]
             if guess_true_value == "*Red*":  # We were correct!
                 # Do something
@@ -50,25 +52,31 @@ class AIGuesserWithState(Guesser):
         # TODO(aditij): Modify this logic to use thresholds.
         return self.num > 0
 
+    def beta_mean((alpha, beta)):
+        return beta.mean(alpha, beta)
+
     def get_answer(self):
         embedding_distances = self.compute_distance(self.clue, self.words)
-        sorted_embedding_distances = {k: v for k, v in sorted(embedding_distances.items(), key=lambda item: item[1])}
-        print("Embedding distances: ", sorted_embedding_distances)
+        sorted_words = [k for k, v in sorted(embedding_distances.items(), key=lambda item: item[1])]
+        print("Words sorted by embedding distances: ", sorted_words)
         self.updated_state = self.state
-        for word in self.words:
-            if word[0] == "*":  # Already guessed.
-                continue
 
-            embedding_distance = embedding_distances[word]
-            (a, b) = self.state[word]
-            beta_prior = (beta.stats(a, b)[0])  # Returns the mean of the distribution.
-            print(beta_prior)
+        # First closest word.
+        first = sorted_words[0]
+        self.updated_state[first] = (self.state[first][0] + 5, self.state[first][1])
 
-            # Assume we have 10 alpha (red) psuedocounts to give out.
-            # TODO(aditi): Update psuedocounts.
+        # Second closest word. Guaranteed to exist.
+        second = sorted_words[1]
+        self.updated_state[second] = (self.state[second][0] + 3, self.state[second][1])
+
+        # Third closest word. Usually exists. Let's leave this as is.
+        third = sorted_words[2]
+        self.updated_state[third] = (self.state[third][0] + 2, self.state[thrid][1])
         
-        self.num -= 1
-        self.guess = min(embedding_distances.items(), key=operator.itemgetter(1))[0]
+        # Return the word with the highest Beta distribution mean.
+        sorted_states = self.updated_state
+        sorted_by_updated_beta = [k for k, v in sorted(self.updated_state.items(), key=lambda item: beta_mean(item[1]))]
+        self.guess = sorted_by_updated_beta[0]
         self.guess_index = self.words.index(self.guess)
         print("Guess is: ", self.guess, self.guess_index)
         return self.guess
