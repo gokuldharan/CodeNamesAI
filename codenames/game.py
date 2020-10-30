@@ -338,7 +338,11 @@ class Game:
             game_condition = GameCondition.HIT_RED
             while guess_num <= clue_num and keep_guessing and game_condition == GameCondition.HIT_RED:
                 self.guesser.set_board(words_in_play)
-                guess_answer = self.guesser.get_answer()
+                if Q != None:
+                    guess_answer = guesser.get_answer(self.words_in_play)
+                else:
+                    guess_answer = self.guesser.get_answer()
+
 
                 # if no comparisons were made/found than retry input from codemaster
                 if guess_answer is None or guess_answer == "no comparisons":
