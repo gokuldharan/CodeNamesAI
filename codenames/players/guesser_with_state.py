@@ -1,3 +1,6 @@
+# python3 run_game.py human players.guesser_with_state.AIGuesserWithState --w2v players/GoogleNews-vectors-negative300.bin 
+#--seed 3442 
+
 import collections
 import operator
 import scipy.spatial.distance
@@ -22,65 +25,86 @@ class AIGuesserWithState(Guesser):
             for word in words:
                 self.state[word] = (7, 18)  # alpha, beta
             self.is_first_turn = False
+            
         else:
             del self.state[self.guess]
-            del self.updated_state[self.guess]
             
-            guess_true_value = self.words[self.guess_index]
-            if guess_true_value == "*Red*":  # We were correct!
-                # Do something
-                pass
-            elif guess_true_value == "*Blue*":
-                # Do something
-                pass
-            elif guess_true_value == "*Civilian*":
-                # Do something
-                pass
-            else:
-                # Assassin.. game's over.
-                pass
         print("State: ", self.state)
-                
+
+    # Gets called in the beginning of each clue.
+    # Do all the initialization here.
     def set_clue(self, clue, num):
         self.clue = clue
         self.num = num
-        print("The clue is:", clue, num)
-        li = [clue, num]
-        return li
+        self.start_turn = True
 
     def keep_guessing(self):
         # TODO(aditij): Modify this logic to use thresholds.
         return self.num > 0
 
-    def beta_mean((alpha, beta)):
-        return beta.mean(alpha, beta)
-
     def get_answer(self):
-        embedding_distances = self.compute_distance(self.clue, self.words)
-        sorted_words = [k for k, v in sorted(embedding_distances.items(), key=lambda item: item[1])]
-        print("Words sorted by embedding distances: ", sorted_words)
-        self.updated_state = self.state
 
-        # First closest word.
-        first = sorted_words[0]
-        self.updated_state[first] = (self.state[first][0] + 5, self.state[first][1])
+        # In the beginning of every turn, we calculate the first, second, and third top guesses
+        # related to the clue.
+        if self.start_turn:
+            embedding_distances = self.compute_distance(self.clue, self.words)
+            sorted_words = [k for k, v in sorted(embedding_distances.items(), key=lambda item: item[1])]
+            print("Words sorted by embedding distances: ", sorted_words)
 
-        # Second closest word. Guaranteed to exist.
-        second = sorted_words[1]
-        self.updated_state[second] = (self.state[second][0] + 3, self.state[second][1])
+            # First closest word.
+            self.first = sorted_words[0]
+            self.state[self.first] = (self.state[self.first][0] + 5, self.state[self.first][1])
 
-        # Third closest word. Usually exists. Let's leave this as is.
-        third = sorted_words[2]
-        self.updated_state[third] = (self.state[third][0] + 2, self.state[thrid][1])
+            # Second closest word. Guaranteed to exist.
+            self.second = sorted_words[1]
+            self.state[self.second] = (self.state[self.second][0] + 3, self.state[self.second][1])
+
+            # Third closest word. Usually exists.
+            self.third = sorted_words[2]
+            self.state[self.third] = (self.state[self.third][0] + 2, self.state[self.third][1])
+
+            self.start_turn = False
+
+        print("state is: ", self.state)
         
-        # Return the word with the highest Beta distribution mean.
-        sorted_states = self.updated_state
-        sorted_by_updated_beta = [k for k, v in sorted(self.updated_state.items(), key=lambda item: beta_mean(item[1]))]
-        self.guess = sorted_by_updated_beta[0]
+        sorted_by_beta = [k for k, v in sorted(self.state.items(), key=lambda item: -beta.mean(item[1][0], item[1][1]))]
+        print("sorted_by_beta: ", sorted_by_beta)
+        # Note this guess may or may not be related to the current clue.
+        self.guess = sorted_by_beta[0]
         self.guess_index = self.words.index(self.guess)
         print("Guess is: ", self.guess, self.guess_index)
+        self.num -= 1
         return self.guess
 
+    def finish_turn(self, game_state):
+        print("In finish_turn: ", game_state)
+        if game_state == "GameCondition.CONTINUE":  # Hit white or blue.
+            # If we hit white or blue, we leave existing psuedocounts as is.
+            print("In finish_turn CONTINUE")
+            pass
+        if game_state == "GameCondition.HIT_RED":  # Hit red, and our turn is over.
+            print("In finish_turn HIT_RED")
+            # Move psuedocounts from alpha to beta.
+
+            if self.guess != self.first and self.guess != self.second and self.guess != self.third:
+                # We made a guess unrelated to the current clue, so leave current clue pseudocounts as-is.
+                pass
+
+            else:  # The guess we made was related to the current clue.
+                if self.guess != self.first and self.first in self.state:
+                    self.state[self.first] = (self.state[self.first][0] - 5, self.state[self.first][1] + 5)
+                    print("Updated state for: ", self.first)
+
+                if self.guess != self.second and self.second in self.state:
+                    self.state[self.second] = (self.state[self.second][0] - 3, self.state[self.second][1] + 3)
+                    print("Updated state for: ", self.second)
+
+                if self.guess != self.third and self.third in self.state:
+                    self.state[self.third] = (self.state[self.third][0] - 2, self.state[self.third][1] + 2)
+                    print("Updated state for: ", self.third)
+
+        print("After finish_turn: ", self.state)
+        
     def compute_distance(self, clue, board):
         # Maps each word to embedding distance from clue.
         w2v = {}
