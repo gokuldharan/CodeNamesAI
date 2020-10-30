@@ -9,17 +9,13 @@ from players.codemaster import Codemaster
 
 class AICodemaster(Codemaster):
 
-    def __init__(self, brown_ic=None, glove_vecs=None, word_vectors=None):
-        super().__init__()
+    def __init__(self, brown_ic=None, glove_vecs=None, word_vectors=None, wordlist_len=None):
+        super().__init__(wordlist_len)
         self.brown_ic = brown_ic
         self.glove_vecs = glove_vecs
         self.word_vectors = word_vectors
         self.wordnet_lemmatizer = WordNetLemmatizer()
         self.lancaster_stemmer = LancasterStemmer()
-        self.cm_wordlist = []
-        with open('players/cm_wordlist.txt') as infile:
-            for line in infile:
-                self.cm_wordlist.append(line.rstrip())
 
         self.bad_word_dists = None
         self.red_word_dists = None
@@ -95,7 +91,7 @@ class AICodemaster(Codemaster):
                     if worst_red < best_dist and worst_red < bad_dist:
                         best_dist = worst_red
                         best_word = word
-                        # print(worst_red,red_word,word)
+                        #print(worst_red,red_word,word)
 
                         if best_dist < best_per_dist:
                             best_per_dist = best_dist

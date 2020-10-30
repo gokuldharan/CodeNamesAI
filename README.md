@@ -48,6 +48,10 @@ Other optional arguments include:
   * raise flag for suppressing printing to std out
 * --game_name *String*
   * game_name in logfile
+* --num_cluewords *Int*
+  * number of words in vocabular of codemaster, randomly sampled from master list
+* --num_gamewords *Int*
+  * number of words that can show up on the board, randomly sampled from master list
 
 An example simulation of a *wordnet codemaster* and a *word2vec guesser* in the terminal from codenames/:  
 `$ python run_game.py players.codemaster_wn_lin.AICodemaster players.guesser_w2v.AIGuesser --seed 3442 --w2v players/GoogleNews-vectors-negative300.bin  --wordnet ic-brown.dat`

@@ -24,6 +24,8 @@ class GameRun:
         parser.add_argument("--wordnet", help="Name of wordnet file or None, most like ic-brown.dat", default=None)
         parser.add_argument("--glove_cm", help="Path to glove file or None", default=None)
         parser.add_argument("--glove_guesser", help="Path to glove file or None", default=None)
+        parser.add_argument("--num_cluewords", help="Number of words in clue pool", default=None)
+        parser.add_argument("--num_gamewords", help="Number of words in game pool", default=None)
 
         parser.add_argument("--no_log", help="Supress logging", action='store_true', default=False)
         parser.add_argument("--no_print", help="Supress printing", action='store_true', default=False)
@@ -40,6 +42,11 @@ class GameRun:
 
         self.g_kwargs = {}
         self.cm_kwargs = {}
+
+
+        #cluewords should be >> 100, we run out of clues for long games and crash
+        self.cm_kwargs["wordlist_len"] = None if args.num_cluewords is None else int(args.num_cluewords)
+        self.num_gamewords = None if args.num_gamewords is None else int(args.num_gamewords)
 
         # load codemaster class
         if args.codemaster == "human":
@@ -130,6 +137,7 @@ if __name__ == "__main__":
                 do_log=game_setup.do_log,
                 game_name=game_setup.game_name,
                 cm_kwargs=game_setup.cm_kwargs,
-                g_kwargs=game_setup.g_kwargs)
+                g_kwargs=game_setup.g_kwargs,
+                num_words = game_setup.num_gamewords)
 
     game.run()

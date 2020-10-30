@@ -5,6 +5,7 @@ import enum
 import os
 import shutil
 import sys
+import utils
 
 import colorama
 import gensim.models.keyedvectors as word2vec
@@ -28,7 +29,7 @@ class Game:
 
     def __init__(self, codemaster, guesser,
                  seed="time", do_print=True, do_log=True, train = False, game_name="default",
-                 cm_kwargs={}, g_kwargs={}):
+                 cm_kwargs={}, g_kwargs={}, num_words = None):
         """ Setup Game details
 
         Args:
@@ -36,26 +37,26 @@ class Game:
                 Codemaster (spymaster in Codenames' rules) class that provides a clue.
             guesser (:class:`Guesser`):
                 Guesser (field operative in Codenames' rules) class that guesses based on clue.
-            seed (int or str, optional): 
-                Value used to init random, "time" for time.time(). 
+            seed (int or str, optional):
+                Value used to init random, "time" for time.time().
                 Defaults to "time".
-            do_print (bool, optional): 
-                Whether to keep on sys.stdout or turn off. 
+            do_print (bool, optional):
+                Whether to keep on sys.stdout or turn off.
                 Defaults to True.
-            do_log (bool, optional): 
-                Whether to append to log file or not. 
+            do_log (bool, optional):
+                Whether to append to log file or not.
                 Defaults to True.
-            game_name (str, optional): 
+            game_name (str, optional):
                 game name used in log file. Defaults to "default".
-            cm_kwargs (dict, optional): 
+            cm_kwargs (dict, optional):
                 kwargs passed to Codemaster.
-            g_kwargs (dict, optional): 
+            g_kwargs (dict, optional):
                 kwargs passed to Guesser.
         """
         self.train = train
         self.alpha = 0.1
         self.gamma = 0.95
-        self.clue_bank = None
+
 
         self.game_start_time = time.time()
         colorama.init()
@@ -84,11 +85,20 @@ class Game:
         print("seed:", self.seed)
 
         # load board words
-        with open("game_wordpool.txt", "r") as f:
+        wordlist_file = 'game_wordpool.txt'
+        if num_words is not None:
+            wordlist_file = utils.getSubsetName(wordlist_file, num_words)
+            if not os.path.isfile(wordlist_file):
+                utils.saveRandomSubset('game_wordpool.txt', num_words)
+
+        with open(wordlist_file, "r") as f:
             temp = f.read().splitlines()
-            assert len(temp) == len(set(temp)), "game_wordpool.txt should not have duplicates"
+            assert len(temp) == len(set(temp)), "wordpool should not have duplicates"
             random.shuffle(temp)
             self.words_on_board = temp[:25]
+
+        #Hash clue words to index
+        self.clue_bank = {self.codemaster.cm_wordlist[x]:x for x in range(len(self.codemaster.cm_wordlist))}
 
         # set grid key for codemaster (spymaster)
         self.key_grid = ["Red"] * 8 + ["Blue"] * 7 + ["Civilian"] * 9 + ["Assassin"]
@@ -283,7 +293,8 @@ class Game:
         Q[old_state][action] = old_Q + self.alpha*(reward + self.gamma*new_Q - old_Q)
 
     def getState(clue):
-        return self.clue_bank.index(clue)
+        #str to idx
+        return self.clue_bank[clue]
 
     def getReward(game_condition):
         if game_condition == GameCondition.HIT_RED :
