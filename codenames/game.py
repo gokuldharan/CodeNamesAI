@@ -73,6 +73,8 @@ class Game:
         self.g_kwargs = g_kwargs
         self.do_log = do_log
         self.game_name = game_name
+        self.word_bank = None
+
 
         # set seed so that board/keygrid can be reloaded later
         if seed == 'time':
@@ -92,7 +94,8 @@ class Game:
                 utils.saveRandomSubset('game_wordpool.txt', num_words)
 
         with open(wordlist_file, "r") as f:
-            temp = f.read().splitlines()
+            self.word_pool = f.read().splitlines()
+            temp = self.word_pool
             assert len(temp) == len(set(temp)), "wordpool should not have duplicates"
             random.shuffle(temp)
             self.words_on_board = temp[:25]
@@ -310,6 +313,13 @@ class Game:
         elif game_condition == GameCondition.CONTINUE:
             return 0
 
+    def getActionMask():
+        action_mask = np.zeros(num_words,)
+        for i in range(num_words):
+            if self.word_pool[i] in self.words_in_play:
+                action_mask[i] = 1
+        return action_mask
+
 
     """ -------------------------------------------------------"""
     def run(self, Q = None):
@@ -350,7 +360,8 @@ class Game:
             while guess_num <= clue_num and keep_guessing and game_condition == GameCondition.HIT_RED:
                 self.guesser.set_board(words_in_play)
                 if Q != None:
-                    guess_answer = guesser.get_answer(self.words_in_play)
+                    action_mask = getActionMask()
+                    guess_answer = guesser.get_answer(self.words_in_play, action_mask)
                 else:
                     guess_answer = self.guesser.get_answer()
 
