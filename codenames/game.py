@@ -394,3 +394,5 @@ class Game:
                         self.write_results(game_counter)
                     print("You Won")
                     print("Game Counter:", game_counter)
+
+            self.guesser.finish_turn(str(game_condition))
