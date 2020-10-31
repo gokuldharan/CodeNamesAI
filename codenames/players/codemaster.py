@@ -33,7 +33,7 @@ class Codemaster(ABC):
 class HumanCodemaster(Codemaster):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(None)
         pass
 
     def set_game_state(self, words_in_play, map_in_play):

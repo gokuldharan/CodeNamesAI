@@ -44,17 +44,19 @@ class GameRun:
         self.cm_kwargs = {}
 
 
-        #cluewords should be >> 100, we run out of clues for long games and crash
-        self.cm_kwargs["wordlist_len"] = None if args.num_cluewords is None else int(args.num_cluewords)
+
         self.num_gamewords = None if args.num_gamewords is None else int(args.num_gamewords)
 
         # load codemaster class
         if args.codemaster == "human":
             self.codemaster = HumanCodemaster
             print('human codemaster')
+            assert(args.num_cluewords is None)
         else:
             self.codemaster = self.import_string_to_class(args.codemaster)
             print('loaded codemaster class')
+            #cluewords should be >> 100, we run out of clues for long games and crash
+            self.cm_kwargs["wordlist_len"] = None if args.num_cluewords is None else int(args.num_cluewords)
 
         # load guesser class
         if args.guesser == "human":
