@@ -27,6 +27,10 @@ class Guesser(ABC):
         """Return the top guessed word based on the clue and current game board"""
         pass
 
+    def finish_turn(self, game_condition):
+        """This should be implemented by guessers that want the result of why their turn ended"""
+        pass
+
 
 class HumanGuesser(Guesser):
     """Guesser derived class for human interaction"""
