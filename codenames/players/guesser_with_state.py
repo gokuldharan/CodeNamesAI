@@ -66,22 +66,36 @@ class AIGuesserWithState(Guesser):
             self.start_turn = False
 
         print("state is: ", self.state)
+        print("\n")
         
         sorted_by_beta = [k for k, v in sorted(self.state.items(), key=lambda item: -beta.mean(item[1][0], item[1][1]))]
         print("sorted_by_beta: ", sorted_by_beta)
+        print("\n")
         # Note this guess may or may not be related to the current clue.
         self.guess = sorted_by_beta[0]
         self.guess_index = self.words.index(self.guess)
-        print("Guess is: ", self.guess, self.guess_index)
+        print("Guess is: ", self.guess)
         self.num -= 1
         return self.guess
 
     def finish_turn(self, game_state):
         print("In finish_turn: ", game_state)
         if game_state == "GameCondition.CONTINUE":  # Hit white or blue.
-            # If we hit white or blue, we leave existing psuedocounts as is.
+            # If we hit white or blue, we discount existing psuedocounts,
+            # so that we give higher weight to words that correlated with the present clue rather than past clues.
+            discount = 0.5
             print("In finish_turn CONTINUE")
-            pass
+
+            if self.first in self.state:
+                self.state[self.first] = (self.state[self.first][0] - int(5 * discount), self.state[self.first][1])
+
+            if self.second in self.state:
+                self.state[self.second] = (self.state[self.second][0] - int(3 * discount), self.state[self.second][1])
+
+            if self.third in self.state:
+                self.state[self.third] = (self.state[self.third][0] - int(2 * discount), self.state[self.third][1])
+
+
         if game_state == "GameCondition.HIT_RED":  # Hit red, and our turn is over.
             print("In finish_turn HIT_RED")
             # Move psuedocounts from alpha to beta.
