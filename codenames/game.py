@@ -287,6 +287,7 @@ class Game:
         num_iterations = 100
         Q = csr_matrix((500, 200), dtype = np.int8)
         for i in num_iterations:
+            print(i)
             run(Q)
         return Q
 

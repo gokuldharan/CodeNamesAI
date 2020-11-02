@@ -30,6 +30,7 @@ class GameRun:
         parser.add_argument("--no_log", help="Supress logging", action='store_true', default=False)
         parser.add_argument("--no_print", help="Supress printing", action='store_true', default=False)
         parser.add_argument("--game_name", help="Name of game in log", default="default")
+        parser.add_argument("--train", help="Train over 100 games", default = False)
 
         args = parser.parse_args()
 
@@ -46,6 +47,7 @@ class GameRun:
 
 
         self.num_gamewords = None if args.num_gamewords is None else int(args.num_gamewords)
+        self.train = args.train
 
         # load codemaster class
         if args.codemaster == "human":
@@ -142,4 +144,7 @@ if __name__ == "__main__":
                 g_kwargs=game_setup.g_kwargs,
                 num_words = game_setup.num_gamewords)
 
-    game.run()
+    if game_setup.train:
+        game.learnQ()
+    else:
+        game.run()

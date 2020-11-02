@@ -32,4 +32,3 @@ class AIGuesser(Guesser):
         action_index = guesser.evaluate(Q, self.state, action_mask)
         action_string = self.word_bank[action_index]
         return action_string
-        
