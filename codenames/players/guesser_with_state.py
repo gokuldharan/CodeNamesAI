@@ -1,5 +1,5 @@
-# python3 run_game.py human players.guesser_with_state.AIGuesserWithState --w2v players/GoogleNews-vectors-negative300.bin 
-#--seed 3442 
+# python3 run_game.py human players.guesser_with_state.AIGuesserWithState --w2v players/GoogleNews-vectors-negative300.bin
+#--seed 3442
 
 import collections
 import operator
@@ -11,9 +11,16 @@ from players.guesser import Guesser
 
 class AIGuesserWithState(Guesser):
 
-    def __init__(self, word_vectors=None):
+    def __init__(self, word_vectors=None, bert_vecs=None, glove_vecs=None):
         super().__init__()
-        self.word_vectors = word_vectors
+
+        if bert_vecs is not None:
+            self.chosen_embedding = bert_vecs
+        elif glove_vecs is not None:
+            self.chosen_embedding = glove_vecs
+        else:
+            self.chosen_embedding = word_vectors
+
         self.num = 0
         self.is_first_turn = True
 
@@ -25,10 +32,10 @@ class AIGuesserWithState(Guesser):
             for word in words:
                 self.state[word] = (7, 18)  # alpha, beta
             self.is_first_turn = False
-            
+
         else:
             del self.state[self.guess]
-            
+
         print("State: ", self.state)
 
     # Gets called in the beginning of each clue.
@@ -67,7 +74,7 @@ class AIGuesserWithState(Guesser):
 
         print("state is: ", self.state)
         print("\n")
-        
+
         sorted_by_beta = [k for k, v in sorted(self.state.items(), key=lambda item: -beta.mean(item[1][0], item[1][1]))]
         print("sorted_by_beta: ", sorted_by_beta)
         print("\n")
@@ -118,7 +125,7 @@ class AIGuesserWithState(Guesser):
                     print("Updated state for: ", self.third)
 
         print("After finish_turn: ", self.state)
-        
+
     def compute_distance(self, clue, board):
         # Maps each word to embedding distance from clue.
         w2v = {}
@@ -126,9 +133,9 @@ class AIGuesserWithState(Guesser):
             try:
                 if word[0] == '*':
                     continue
-                w2v[word] = scipy.spatial.distance.cosine(self.word_vectors[clue],
-                                                          self.word_vectors[word.lower()])
+                w2v[word] = scipy.spatial.distance.cosine(self.chosen_embedding[clue],
+                                                          self.chosen_embedding[word.lower()])
             except KeyError:
                 continue
-            
+
         return w2v

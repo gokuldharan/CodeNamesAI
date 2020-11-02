@@ -126,6 +126,15 @@ class Game:
             return glove_vecs
 
     @staticmethod
+    def load_bert_vecs(bert_file_path):
+        with open(bert_file_path) as infile:
+            bert_vecs = {}
+            for line in infile:
+                line = line.rstrip().split(' ')
+                bert_vecs[line[0]] = np.array([float(n) for n in line[1:]])
+            return bert_vecs
+
+    @staticmethod
     def load_wordnet(wordnet_file):
         """Function that loads wordnet from nltk.corpus"""
         return wordnet_ic.ic(wordnet_file)

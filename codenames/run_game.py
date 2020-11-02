@@ -24,6 +24,8 @@ class GameRun:
         parser.add_argument("--wordnet", help="Name of wordnet file or None, most like ic-brown.dat", default=None)
         parser.add_argument("--glove_cm", help="Path to glove file or None", default=None)
         parser.add_argument("--glove_guesser", help="Path to glove file or None", default=None)
+        parser.add_argument("--bert_cm", help="Path to bert file or None", default=None)
+        parser.add_argument("--bert_guesser", help="Path to bert file or None", default=None)
         parser.add_argument("--num_cluewords", help="Number of words in clue pool", default=None)
         parser.add_argument("--num_gamewords", help="Number of words in game pool", default=None)
 
@@ -105,6 +107,18 @@ class GameRun:
                 glove_vectors = Game.load_glove_vecs(args.glove_guesser)
                 self.g_kwargs["glove_vecs"] = glove_vectors
                 print('loaded glove vectors')
+
+            if args.bert_cm is not None:
+                assert(sys.argv[1] != "human")
+                bert_vectors = Game.load_glove_vecs(args.bert_cm)
+                self.cm_kwargs["bert_vecs"] = bert_vectors
+                print('loaded BERT vectors')
+
+            if args.bert_guesser is not None:
+                assert(sys.argv[2] != "human")
+                bert_vectors = Game.load_glove_vecs(args.bert_guesser)
+                self.g_kwargs["bert_vecs"] = bert_vectors
+                print('loaded BERT vectors')
 
 
         # set seed so that board/keygrid can be reloaded later
