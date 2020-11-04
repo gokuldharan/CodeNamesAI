@@ -159,6 +159,7 @@ if __name__ == "__main__":
                 num_words = game_setup.num_gamewords)
 
     if game_setup.train:
+        print("hello")
         game.learnQ()
     else:
         game.run()

@@ -31,6 +31,13 @@ class Guesser(ABC):
         """This should be implemented by guessers that want the result of why their turn ended"""
         pass
 
+    def get_board_state(self, Q, action_mask, state):
+        """This should be implemented by AIGuesser, which requires an action mask to choose a word"""
+        pass
+    def get_word_bank(word_pool):
+        """This should be implemented by AIGuesser, which requires a word bank to create an action mask"""
+        pass
+
 
 class HumanGuesser(Guesser):
     """Guesser derived class for human interaction"""

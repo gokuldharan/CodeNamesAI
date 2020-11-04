@@ -5,6 +5,7 @@ import numpy as np
 # where 1 indicates that the corresponding word is a valid guess
 class greedyPolicy:
     def evaluate(self, Q, state, action_mask):
+        #masked_action_values = np.multiply(Q[state], action_mask)
         masked_action_values = np.ma.masked_array(Q[state],1-action_mask)
         return np.argmax(masked_action_values)
 
@@ -23,6 +24,8 @@ class epsilonGreedyExploration:
             return np.random.choice(masked_actions)
 
         masked_action_values = np.ma.masked_array(Q[state],1-action_mask)
+        #masked_action_values = np.multiply(Q[state], 1-action_mask)
+
         return np.argmax(masked_action_values)
 
 class softmaxExploration:

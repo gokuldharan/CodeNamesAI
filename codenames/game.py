@@ -73,7 +73,8 @@ class Game:
         self.g_kwargs = g_kwargs
         self.do_log = do_log
         self.game_name = game_name
-        self.word_bank = None
+        self.word_pool = None
+        self.num_words = num_words
 
 
         # set seed so that board/keygrid can be reloaded later
@@ -99,6 +100,7 @@ class Game:
             assert len(temp) == len(set(temp)), "wordpool should not have duplicates"
             random.shuffle(temp)
             self.words_on_board = temp[:25]
+        self.guesser.get_word_bank(self.word_pool)
 
         #Hash clue words to index
         self.clue_bank = {self.codemaster.cm_wordlist[x]:x for x in range(len(self.codemaster.cm_wordlist))}
@@ -292,24 +294,30 @@ class Game:
             shutil.rmtree("results")
 
     """ ----------------- Q learning functions ---------------"""
-    def learnQ():
+
+    def learnQ(self):
         num_iterations = 100
-        Q = csr_matrix((500, 200), dtype = np.int8)
-        for i in num_iterations:
+        Q = np.zeros((500, 100))
+        for i in range(num_iterations):
             print(i)
-            run(Q)
+            self.run(Q)
         return Q
 
-    def updateQ(Q, old_state, action, new_state, reward):
-        new_Q = max(Q.getrow(new_state))
+    def updateQ(self, Q, old_state, action, new_state, reward):
+        new_Q = max(Q[new_state])
         old_Q = Q[old_state][action]
         Q[old_state][action] = old_Q + self.alpha*(reward + self.gamma*new_Q - old_Q)
 
-    def getState(clue):
+    def getState(self, clue):
         #str to idx
         return self.clue_bank[clue]
 
-    def getReward(game_condition):
+    def getActionIndex(self, action):
+        for i in range(len(self.word_pool)):
+            if self.word_pool[i] == action:
+                return i
+
+    def getReward(self, game_condition):
         if game_condition == GameCondition.HIT_RED :
             return 1
         elif game_condition == GameCondition.HIT_BLUE:
@@ -323,10 +331,10 @@ class Game:
         elif game_condition == GameCondition.CONTINUE:
             return 0
 
-    def getActionMask():
-        action_mask = np.zeros(num_words,)
-        for i in range(num_words):
-            if self.word_pool[i] in self.words_in_play:
+    def getActionMask(self, words_in_play):
+        action_mask = np.zeros(self.num_words,)
+        for i in range(self.num_words):
+            if self.word_pool[i] in words_in_play:
                 action_mask[i] = 1
         return action_mask
 
@@ -348,20 +356,22 @@ class Game:
             words_in_play = self.get_words_on_board()
             current_key_grid = self.get_key_grid()
             self.codemaster.set_game_state(words_in_play, current_key_grid)
-            self._display_key_grid()
-            self._display_board_codemaster()
+            #self._display_key_grid()
+            #self._display_board_codemaster()
 
             # codemaster gives clue & number here
             clue, clue_num = self.codemaster.get_clue()
+            print("clue: ", clue)
             game_counter += 1
             keep_guessing = True
             guess_num = 0
             clue_num = int(clue_num)
 
-            if Q != None:
-                new_state = getState(clue)
+            if not self.train:
+                new_state = self.clue_bank[clue] #self.getState(clue)
                 if old_state != "":
-                    updateQ(old_state, action, new_state, reward)
+                    action_idx = self.getActionIndex(action)
+                    self.updateQ(Q, old_state, action_idx, new_state, reward)
 
             print('\n' * 2)
             self.guesser.set_clue(clue, clue_num)
@@ -369,13 +379,16 @@ class Game:
             game_condition = GameCondition.HIT_RED
             while guess_num <= clue_num and keep_guessing and game_condition == GameCondition.HIT_RED:
                 self.guesser.set_board(words_in_play)
-                if Q != None:
-                    action_mask = getActionMask()
-                    guess_answer = guesser.get_answer(self.words_in_play, action_mask)
+                if not self.train:
+                    curr_state = self.getState(clue)
+                    action_mask = self.getActionMask(words_in_play)
+                    self.guesser.get_board_state(Q, action_mask, curr_state)
+                    guess_answer = self.guesser.get_answer() # Not sure why it's asking for action_mask as a parameter
+
                 else:
                     guess_answer = self.guesser.get_answer()
 
-
+                print("guess: ", guess_answer)
                 # if no comparisons were made/found than retry input from codemaster
                 if guess_answer is None or guess_answer == "no comparisons":
                     break
@@ -383,9 +396,9 @@ class Game:
                 game_condition = self._accept_guess(guess_answer_index)
 
                 # Q learning with simplification of state space
-                if Q != None:
+                if not self.train:
                     action = guess_answer
-                    reward = getReward(game_condition)
+                    reward = self.getReward(game_condition)
                     old_state = new_state
 
                 if game_condition == GameCondition.HIT_RED:
