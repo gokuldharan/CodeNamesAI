@@ -30,7 +30,7 @@ class AIGuesserWithState(Guesser):
         if self.is_first_turn:
             self.state = {}
             for word in words:
-                self.state[word] = (7, 18)  # alpha, beta
+                self.state[word] = (8, 17)  # alpha, beta
             self.is_first_turn = False
 
         else:
