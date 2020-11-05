@@ -6,7 +6,7 @@ import itertools
 
 from players.codemaster import Codemaster
 
-
+#This uses 'low' threshold (0.3)
 class AICodemaster(Codemaster):
 
     def __init__(self, brown_ic=None, glove_vecs=None, word_vectors=None, bert_vecs=None, wordlist_len=None):
@@ -117,7 +117,7 @@ class AICodemaster(Codemaster):
                     worst = dist
                 if dist < best:
                     best = dist
-            if worst < 0.7 and worst != -np.inf:
+            if worst < 0.3 and worst != -np.inf:
                 print(worst, chosen_clue, chosen_num)
                 chosen_clue = clue
                 chosen_num = clue_num
