@@ -66,6 +66,8 @@ class Game:
             self._save_stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
 
+        self.codemasterClass = codemaster
+        self.guesserClass = guesser
         self.codemaster = codemaster(**cm_kwargs)
         self.guesser = guesser(**g_kwargs)
 
@@ -74,7 +76,7 @@ class Game:
         self.do_log = do_log
         self.game_name = game_name
         self.word_pool = None
-        self.num_words = num_words
+
 
 
         # set seed so that board/keygrid can be reloaded later
@@ -101,6 +103,7 @@ class Game:
             random.shuffle(temp)
             self.words_on_board = temp[:25]
         self.guesser.get_word_bank(self.word_pool)
+        self.num_words = len(self.word_pool)
 
         #Hash clue words to index
         self.clue_bank = {self.codemaster.cm_wordlist[x]:x for x in range(len(self.codemaster.cm_wordlist))}
@@ -301,6 +304,10 @@ class Game:
         for i in range(num_iterations):
             print(i)
             self.run(Q)
+            #Pretty hacky (but neat) way of resetting the game after each iteration
+            self.__init__(self.codemasterClass, self.guesserClass,
+                 seed=self.seed+1, do_print=self.do_print, do_log=self.do_log, train = True, game_name=self.game_name,
+                 cm_kwargs=self.cm_kwargs, g_kwargs=self.g_kwargs, num_words = self.num_words)
         return Q
 
     def updateQ(self, Q, old_state, action, new_state, reward):
