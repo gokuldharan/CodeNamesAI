@@ -3,6 +3,7 @@ import importlib
 import argparse
 import time
 import os
+import numpy as np
 
 from game import Game
 from players.guesser import *
@@ -156,10 +157,14 @@ if __name__ == "__main__":
                 game_name=game_setup.game_name,
                 cm_kwargs=game_setup.cm_kwargs,
                 g_kwargs=game_setup.g_kwargs,
-                num_words = game_setup.num_gamewords)
+                num_words = game_setup.num_gamewords,
+                train=game_setup.train)
 
     if game_setup.train:
-        print("hello")
-        game.learnQ()
+        num_games = 5
+        Q = game.learnQ(num_games)
+        Q_filename = "Q_" + str(num_games) + ".matrix"
+        with open(Q_filename, 'wb') as file:
+            np.save(file, Q)
     else:
         game.run()

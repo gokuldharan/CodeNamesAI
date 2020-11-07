@@ -54,7 +54,7 @@ class Game:
                 kwargs passed to Guesser.
         """
         self.train = train
-        self.alpha = 0.1
+        self.alpha = 0.9
         self.gamma = 0.95
 
 
@@ -98,10 +98,11 @@ class Game:
 
         with open(wordlist_file, "r") as f:
             self.word_pool = f.read().splitlines()
-            temp = self.word_pool
+            temp = list(np.copy(self.word_pool))
             assert len(temp) == len(set(temp)), "wordpool should not have duplicates"
             random.shuffle(temp)
             self.words_on_board = temp[:25]
+        print(temp)
         self.guesser.get_word_bank(self.word_pool)
         self.num_words = len(self.word_pool)
 
@@ -298,12 +299,14 @@ class Game:
 
     """ ----------------- Q learning functions ---------------"""
 
-    def learnQ(self):
-        num_iterations = 100
-        Q = np.zeros((500, 100))
+    def learnQ(self, num_iterations):
+        
+        Q = np.zeros((len(self.clue_bank), self.num_words))
+
         for i in range(num_iterations):
-            print(i)
+            print("iteration ", i)
             self.run(Q)
+            
             #Pretty hacky (but neat) way of resetting the game after each iteration
             self.__init__(self.codemasterClass, self.guesserClass,
                  seed=self.seed+1, do_print=self.do_print, do_log=self.do_log, train = True, game_name=self.game_name,
@@ -314,6 +317,8 @@ class Game:
         new_Q = max(Q[new_state])
         old_Q = Q[old_state][action]
         Q[old_state][action] = old_Q + self.alpha*(reward + self.gamma*new_Q - old_Q)
+        print("Old Q value: ",  old_Q)
+        print("New Q value: ", Q[old_state][action])
 
     def getState(self, clue):
         #str to idx
@@ -363,35 +368,37 @@ class Game:
             words_in_play = self.get_words_on_board()
             current_key_grid = self.get_key_grid()
             self.codemaster.set_game_state(words_in_play, current_key_grid)
-            #self._display_key_grid()
-            #self._display_board_codemaster()
+            if not self.train:
+                self._display_key_grid()
+                self._display_board_codemaster()
 
             # codemaster gives clue & number here
             clue, clue_num = self.codemaster.get_clue()
-            print("clue: ", clue)
+            
             game_counter += 1
             keep_guessing = True
             guess_num = 0
             clue_num = int(clue_num)
-
-            if not self.train:
-                new_state = self.clue_bank[clue] #self.getState(clue)
-                if old_state != "":
-                    action_idx = self.getActionIndex(action)
-                    self.updateQ(Q, old_state, action_idx, new_state, reward)
 
             print('\n' * 2)
             self.guesser.set_clue(clue, clue_num)
 
             game_condition = GameCondition.HIT_RED
             while guess_num <= clue_num and keep_guessing and game_condition == GameCondition.HIT_RED:
+                if self.train:
+                    new_state = self.clue_bank[clue] #self.getState(clue)
+                    if old_state != "":
+                        action_idx = self.getActionIndex(action)
+                        self.updateQ(Q, old_state, action_idx, new_state, reward)
+
                 self.guesser.set_board(words_in_play)
-                if not self.train:
+                if self.train:
                     curr_state = self.getState(clue)
                     action_mask = self.getActionMask(words_in_play)
+
                     self.guesser.get_board_state(Q, action_mask, curr_state)
                     guess_answer = self.guesser.get_answer() # Not sure why it's asking for action_mask as a parameter
-
+                    
                 else:
                     guess_answer = self.guesser.get_answer()
 
@@ -401,18 +408,22 @@ class Game:
                     break
                 guess_answer_index = words_in_play.index(guess_answer.upper().strip())
                 game_condition = self._accept_guess(guess_answer_index)
+                print("Game condition: ", game_condition)
 
                 # Q learning with simplification of state space
-                if not self.train:
+                if self.train:
                     action = guess_answer
                     reward = self.getReward(game_condition)
+                    print("Reward: ", reward)
+                    
                     old_state = new_state
 
                 if game_condition == GameCondition.HIT_RED:
                     print('\n' * 2)
-                    self._display_board_codemaster()
+                    #self._display_board_codemaster()
                     guess_num += 1
                     print("Keep Guessing? the clue is ", clue, clue_num)
+
                     keep_guessing = self.guesser.keep_guessing()
 
                 # if guesser selected a civilian or a blue-paired word
@@ -422,18 +433,24 @@ class Game:
                 elif game_condition == GameCondition.LOSS:
                     self.game_end_time = time.time()
                     game_counter = 25
-                    self._display_board_codemaster()
+                    #self._display_board_codemaster()
                     if self.do_log:
                         self.write_results(game_counter)
                     print("You Lost")
                     print("Game Counter:", game_counter)
+                    if self.train:
+                        action_idx = self.getActionIndex(action)
+                        self.updateQ(Q, old_state, action_idx, old_state, reward)
 
                 elif game_condition == GameCondition.WIN:
                     self.game_end_time = time.time()
-                    self._display_board_codemaster()
+                    #self._display_board_codemaster()
                     if self.do_log:
                         self.write_results(game_counter)
                     print("You Won")
                     print("Game Counter:", game_counter)
+                    if self.train:
+                        action_idx = self.getActionIndex(action)
+                        self.updateQ(Q, old_state, action_idx, old_state, reward)
 
             self.guesser.finish_turn(str(game_condition))

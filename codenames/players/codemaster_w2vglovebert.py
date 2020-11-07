@@ -100,7 +100,7 @@ class AICodemaster(Codemaster):
                             best_red_word = red_word
             bests[clue_num] = (best_red_word, best_per, best_per_dist)
 
-        print("BESTS: ", bests)
+        #print("BESTS: ", bests)
         li = []
         pi = []
         chosen_clue = bests[1]

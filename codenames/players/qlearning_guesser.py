@@ -36,6 +36,7 @@ class AIGuesser(Guesser):
 
     def get_answer(self):
         action_index = self.explorer.evaluate(self.Q, self.state, self.action_mask)
+        print("action valid?: ", self.action_mask[action_index])
         action_string = self.word_pool[action_index]
         return action_string
 
