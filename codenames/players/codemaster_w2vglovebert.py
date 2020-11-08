@@ -20,6 +20,7 @@ class AICodemaster(Codemaster):
 
         self.bad_word_dists = None
         self.red_word_dists = None
+        self.pruned_wordlist = False
 
     def set_game_state(self, words, maps):
         self.words = words
@@ -66,6 +67,18 @@ class AICodemaster(Codemaster):
             for word in to_remove:
                 del self.red_word_dists[word]
 
+
+
+        if not self.pruned_wordlist:
+            pruned_list = []
+            print(red_words + bad_words)
+            for word in self.cm_wordlist:
+                if not self.arr_not_in_word(word, red_words + bad_words):
+                    continue
+                pruned_list.append(word)
+            self.pruned_wordlist = True
+            self.cm_wordlist = pruned_list
+
         for clue_num in range(1, 3 + 1):
             best_per_dist = np.inf
             best_per = ''
@@ -74,9 +87,6 @@ class AICodemaster(Codemaster):
                 best_word = ''
                 best_dist = np.inf
                 for word in self.cm_wordlist:
-                    if not self.arr_not_in_word(word, red_words + bad_words):
-                        continue
-
                     bad_dist = np.inf
                     worst_bad = ''
                     for bad_word in self.bad_word_dists:
