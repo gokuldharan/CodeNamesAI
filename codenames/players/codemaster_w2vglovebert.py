@@ -3,6 +3,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.stem.lancaster import LancasterStemmer
 import numpy as np
 import itertools
+import random
 
 from players.codemaster import Codemaster
 
@@ -20,6 +21,7 @@ class AICodemaster(Codemaster):
 
         self.bad_word_dists = None
         self.red_word_dists = None
+        self.pruned_wordlist = False
 
     def set_game_state(self, words, maps):
         self.words = words
@@ -66,6 +68,16 @@ class AICodemaster(Codemaster):
             for word in to_remove:
                 del self.red_word_dists[word]
 
+        if not self.pruned_wordlist:
+            pruned_list = []
+            print(red_words + bad_words)
+            for word in self.cm_wordlist:
+                if not self.arr_not_in_word(word, red_words + bad_words):
+                    continue
+                pruned_list.append(word)
+            self.pruned_wordlist = True
+            self.cm_wordlist = pruned_list
+
         for clue_num in range(1, 3 + 1):
             best_per_dist = np.inf
             best_per = ''
@@ -74,9 +86,6 @@ class AICodemaster(Codemaster):
                 best_word = ''
                 best_dist = np.inf
                 for word in self.cm_wordlist:
-                    if not self.arr_not_in_word(word, red_words + bad_words):
-                        continue
-
                     bad_dist = np.inf
                     worst_bad = ''
                     for bad_word in self.bad_word_dists:
@@ -126,7 +135,9 @@ class AICodemaster(Codemaster):
                        combined_score, combined_score ** len(best_red_word)))
 
         if chosen_clue[2] == np.inf:
-            chosen_clue = ('', li[0][3], 0)
+            print("Could not find clue, adding random clue! THIS IS A HACK")
+            ###HACK
+            chosen_clue = (random.choice(self.cm_wordlist), li[0][3], 0)
             chosen_num = 1
         # print("LI: ", li)
         # print("The clue is: ", li[0][3])
