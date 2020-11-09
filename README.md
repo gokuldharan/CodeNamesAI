@@ -1,6 +1,12 @@
+# Codenames AI Guessers
+
+We implement Bayesian and Q-learning Guesser AIs as well as BERT embeddings on top of the existing Codenames AI Competition Framework. Additionally, we make significant infrastructure modifications to make this environment more suitable to large-scale training and testing. 
+
+
+
 # Codenames AI Competition Framework
 
-This is the Codenames AI Competition Framework.  The purpose of this framework is to enable an AI competition for the game "Codenames" by Vlaada Chvatil.  There are large number of AI competitions built around games (and even more platforms using games as a testbed for AI), but with few exceptions these have focused on things that AI is likely to be good at (fine, pixel-perfect control or search through a large state space).  The purpose of this competition is to test AI in a framework that:
+The purpose of this framework is to enable an AI competition for the game "Codenames" by Vlaada Chvatil.  There are large number of AI competitions built around games (and even more platforms using games as a testbed for AI), but with few exceptions these have focused on things that AI is likely to be good at (fine, pixel-perfect control or search through a large state space).  The purpose of this competition is to test AI in a framework that:
 
 * Requires the understanding of language
 * Requires communication, in a semantically meaningful way, with players of unknown provenance --  the player on the other side of the table may be a human or it may be another, unaffiliated, bot
