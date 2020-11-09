@@ -1,5 +1,6 @@
 from policy import epsilonGreedyExploration
 from policy import greedyPolicy
+from policy import softmaxExploration
 from players.guesser import Guesser
 import numpy as np
 
@@ -11,7 +12,7 @@ class AIGuesser(Guesser):
         self.word_vectors = word_vectors
         self.num = 0
 
-        self.explorer = epsilonGreedyExploration(0.5, 0.95)
+        self.explorer = softmaxExploration(50, 0.9999)
         self.word_pool = None
         self.state = 0
         self.words_in_play = None
@@ -24,7 +25,7 @@ class AIGuesser(Guesser):
             self.Q = None
             self.train = True
             self.policy = None
-            
+
 
     def get_board_state(self, Q, action_mask, state):
         self.action_mask = action_mask
@@ -38,8 +39,8 @@ class AIGuesser(Guesser):
     def set_clue(self, clue, num):
         self.clue = clue
         self.num = num
-        print("The clue is:", clue, num)
-        li = [clue, num]  
+        #print("The clue is:", clue, num)
+        li = [clue, num]
         self.state = clue
         return li
 
@@ -59,4 +60,3 @@ class AIGuesser(Guesser):
     def get_word_bank(self, word_pool):
         self.word_pool = word_pool
 
-        

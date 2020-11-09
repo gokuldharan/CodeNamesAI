@@ -171,11 +171,11 @@ if __name__ == "__main__":
                 num_words = game_setup.num_gamewords,
                 train=game_setup.train,
                 test = game_setup.test)
-    
-    
+
+
 
     if game_setup.train:
-        num_games = 100
+        num_games = 50000
         Q = game.learnQ(num_games)
         Q_filename = "Q_" + str(game_setup.num_gamewords) + "_" + str(game_setup.num_cluewords) + ".matrix"
         with open(Q_filename, 'wb') as file:

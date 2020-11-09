@@ -70,7 +70,7 @@ class AICodemaster(Codemaster):
 
         if not self.pruned_wordlist:
             pruned_list = []
-            print(red_words + bad_words)
+            #print(red_words + bad_words)
             for word in self.cm_wordlist:
                 if not self.arr_not_in_word(word, red_words + bad_words):
                     continue
