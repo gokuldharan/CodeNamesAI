@@ -11,7 +11,7 @@ from players.guesser_random import AIGuesser as g_rand
 
 #Just change these for diff guesser types, embeddings
 CM_EMB = "BERT"     #BERT, GLOVE, or W2V
-G_EMB = "BERT"
+G_EMB = "GLOVE"
 G_TYPE = "BASELINE" #BASELINE, WITH_STATE, or RANDOM (ALSO Q?)
 
 
@@ -60,6 +60,7 @@ class Simulation:
     num_turns = 0
     min_num_turns = 25
     num_wins = 0
+    num_turns_in_wins = 0
     with open("results/" + game_name + ".txt") as f:
         for line in f.readlines():
             game_json = json.loads(line.rstrip())
@@ -70,11 +71,13 @@ class Simulation:
             red_cards_guessed = game_json["R"]
             if red_cards_guessed == 8:
                 num_wins += 1
+                num_turns_in_wins += turns
 
 
     avg_turns = 1.0 * num_turns / num_games
     win_pct = 1.0 * num_wins / num_games
-    print(f"avg_turns={avg_turns}, min_turns={min_num_turns}, win_pct={win_pct}")
+    avg_turns_wins = 1.0 * num_turns_in_wins / num_wins
+    print(f"avg_turns={avg_turns}, min_turns={min_num_turns}, win_pct={win_pct}, avg_turns_in_wins={avg_turns_wins}")
 
 
 if __name__ == "__main__":
