@@ -29,7 +29,7 @@ class Game:
 
     def __init__(self, codemaster, guesser,
                  seed="time", do_print=True, do_log=True, train = False, game_name="default",
-                 cm_kwargs={}, g_kwargs={}, num_words = None):
+                 cm_kwargs={}, g_kwargs={}, num_words = None, uniquify_output=False):
         """ Setup Game details
 
         Args:
@@ -56,6 +56,7 @@ class Game:
         self.train = train
         self.alpha = 0.1
         self.gamma = 0.95
+        self.uniquify_output = uniquify_output
 
 
         self.game_start_time = time.time()
@@ -268,8 +269,10 @@ class Game:
                 f' R:{red_result} CM:{type(self.codemaster).__name__} '
                 f'GUESSER:{type(self.guesser).__name__} SEED:{self.seed}\n'
             )
-
-        with open("results/bot_results_new_style.txt", "a") as f:
+        name = "results/bot_results_new_style.txt"
+        if self.uniquify_output:
+            name = "results/" + self.game_name + ".txt"
+        with open(name, "a") as f:
             results = {"game_name": self.game_name,
                        "total_turns": num_of_turns,
                        "R": red_result, "B": blue_result, "C": civ_result, "A": assa_result,
@@ -286,10 +289,14 @@ class Game:
             f.write('\n')
 
     @staticmethod
-    def clear_results():
+    def clear_results(name=None):
         """Delete results folder"""
-        if os.path.exists("results") and os.path.isdir("results"):
-            shutil.rmtree("results")
+        if name is None:
+            if os.path.exists("results") and os.path.isdir("results"):
+                shutil.rmtree("results")
+        else:
+            if os.path.exists("results/" + name+ ".txt"):
+                os.remove("results/" + name+ ".txt")
 
     """ ----------------- Q learning functions ---------------"""
     def learnQ():

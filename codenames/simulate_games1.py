@@ -37,7 +37,8 @@ class Simulation:
     print(f"{time.time() - start_time:.2f}s to load w2v")
 
     print("\nclearing results folder...\n")
-    Game.clear_results()
+    game_name = str(CM_EMB) +"-"+ str(G_EMB) + "-" + str(G_TYPE)
+    Game.clear_results(name = game_name)
 
     cm_vec = argToVec[CM_EMB]
     cm_key = argToKey[CM_EMB]
@@ -50,17 +51,16 @@ class Simulation:
 
     num_games = 100
     for seed in range(num_games):
-        game_name = str(CM_EMB) +"-"+ str(G_EMB) + "-" + str(G_TYPE) + str(seed)
-        print("starting " + game_name)
+        print("starting " + game_name + str(seed))
         cm_kwargs = {cm_key: cm_vec}
         g_kwargs = {g_key: g_vec}
-        Game(cm, g, seed=seed, do_print=False,  game_name=game_name, cm_kwargs=cm_kwargs, g_kwargs=g_kwargs).run()
+        Game(cm, g, seed=seed, do_print=False,  game_name=game_name, cm_kwargs=cm_kwargs, g_kwargs=g_kwargs, uniquify_output=True).run()
 
     # display the results (AVG NUM TUNRS, MIN NUM TURNS, WIN PERCENTAGE).
     num_turns = 0
     min_num_turns = 25
     num_wins = 0
-    with open("results/bot_results_new_style.txt") as f:
+    with open("results/" + game_name + ".txt") as f:
         for line in f.readlines():
             game_json = json.loads(line.rstrip())
             turns = game_json["total_turns"]
