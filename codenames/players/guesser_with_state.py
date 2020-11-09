@@ -90,7 +90,7 @@ class AIGuesserWithState(Guesser):
         if game_state == "GameCondition.CONTINUE":  # Hit white or blue.
             # If we hit white or blue, we discount existing psuedocounts,
             # so that we give higher weight to words that correlated with the present clue rather than past clues.
-            discount = 0.5
+            discount = 0.8
             print("In finish_turn CONTINUE")
 
             if self.first in self.state:
