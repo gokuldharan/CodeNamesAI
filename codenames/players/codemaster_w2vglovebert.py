@@ -38,7 +38,7 @@ class AICodemaster(Codemaster):
                 bad_words.append(self.words[i].lower())
             else:
                 red_words.append(self.words[i].lower())
-        print("RED:\t", red_words)
+        #print("RED:\t", red_words)
 
         all_vectors = [vec for vec in [self.word_vectors, self.glove_vecs, self.bert_vecs] if vec is not None]
         bests = {}
@@ -118,7 +118,7 @@ class AICodemaster(Codemaster):
                 if dist < best:
                     best = dist
             if worst < 0.7 and worst != -np.inf:
-                print(worst, chosen_clue, chosen_num)
+                #print(worst, chosen_clue, chosen_num)
                 chosen_clue = clue
                 chosen_num = clue_num
 
@@ -130,7 +130,7 @@ class AICodemaster(Codemaster):
             chosen_num = 1
         # print("LI: ", li)
         # print("The clue is: ", li[0][3])
-        print('chosen_clue is:', chosen_clue)
+        #print('chosen_clue is:', chosen_clue)
         # return in array styled: ["clue", number]
         return chosen_clue[1], chosen_num  # [li[0][3], 1]
 

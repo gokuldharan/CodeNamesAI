@@ -33,7 +33,9 @@ class GameRun:
         parser.add_argument("--no_log", help="Supress logging", action='store_true', default=False)
         parser.add_argument("--no_print", help="Supress printing", action='store_true', default=False)
         parser.add_argument("--game_name", help="Name of game in log", default="default")
-        parser.add_argument("--train", help="Train over 100 games", default = False)
+        parser.add_argument("--train", help="Train over n games", default = False)
+        parser.add_argument("--test", help= "Test Q matrix over n games", default = False)
+        parser.add_argument("--q_file", help=".matrix file for learned Q matrix", default=None)
 
         args = parser.parse_args()
 
@@ -46,11 +48,13 @@ class GameRun:
 
         self.g_kwargs = {}
         self.cm_kwargs = {}
+        self.num_cluewords = args.num_cluewords
 
 
 
         self.num_gamewords = None if args.num_gamewords is None else int(args.num_gamewords)
         self.train = args.train
+        self.test = args.test
 
         # load codemaster class
         if args.codemaster == "human":
@@ -121,6 +125,13 @@ class GameRun:
                 self.g_kwargs["bert_vecs"] = bert_vectors
                 print('loaded BERT vectors')
 
+            if args.q_file is not None:
+                assert(sys.argv[2] != "human")
+                self.g_kwargs["Q_file"] = args.q_file
+                print("loaded Q file")
+
+
+
 
         # set seed so that board/keygrid can be reloaded later
         if args.seed == 'time':
@@ -158,13 +169,19 @@ if __name__ == "__main__":
                 cm_kwargs=game_setup.cm_kwargs,
                 g_kwargs=game_setup.g_kwargs,
                 num_words = game_setup.num_gamewords,
-                train=game_setup.train)
+                train=game_setup.train,
+                test = game_setup.test)
+    
+    
 
     if game_setup.train:
-        num_games = 5
+        num_games = 100
         Q = game.learnQ(num_games)
-        Q_filename = "Q_" + str(num_games) + ".matrix"
+        Q_filename = "Q_" + str(game_setup.num_gamewords) + "_" + str(game_setup.num_cluewords) + ".matrix"
         with open(Q_filename, 'wb') as file:
             np.save(file, Q)
+    elif game_setup.test:
+        num_games = 100
+        game.testQ(num_games)
     else:
         game.run()
