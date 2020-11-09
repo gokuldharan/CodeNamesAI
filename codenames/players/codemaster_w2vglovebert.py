@@ -137,7 +137,7 @@ class AICodemaster(Codemaster):
         if chosen_clue[2] == np.inf:
             print("Could not find clue, adding random clue! THIS IS A HACK")
             ###HACK
-            chosen_clue = (random.choice(self.cm_wordlist), li[0][3], 0)
+            chosen_clue = (random.choice(self.cm_wordlist), random.choice(self.cm_wordlist), 0)
             chosen_num = 1
         # print("LI: ", li)
         # print("The clue is: ", li[0][3])
